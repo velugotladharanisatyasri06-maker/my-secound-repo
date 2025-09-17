@@ -1,0 +1,324 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Fast Food Lovers Dashboard</title>
+  <style>
+    /* Reset + base */
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#ff6b35; --muted:#9aa4b2; --glass: rgba(255,255,255,0.03);
+      --success:#29c77a; --danger:#ff4d6d; --glass-2: rgba(255,255,255,0.02);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;color:#e6eef6;background:linear-gradient(180deg,#061021 0%, #071a2a 100%);}.app{display:grid;grid-template-columns:250px 1fr;gap:20px;padding:22px;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:20px;border:1px solid rgba(255,255,255,0.03);}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#ff9d6b);display:grid;place-items:center;font-weight:700;color:#112233}
+.brand h1{font-size:16px;margin:0}
+.nav{margin-top:14px}
+.nav button{display:flex;align-items:center;gap:10px;width:100%;padding:10px;border-radius:10px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-weight:600}
+.nav button.active{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:#fff}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;gap:18px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.search{flex:1;margin-right:14px}
+.search input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--glass);background:transparent;color:inherit}
+.actions{display:flex;gap:10px}
+.btn{padding:10px 12px;border-radius:10px;border:none;background:var(--card);cursor:pointer;color:#e6eef6}
+
+/* Cards row */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:linear-gradient(180deg,var(--card), rgba(255,255,255,0.01));padding:16px;border-radius:12px;border:1px solid var(--glass-2)}
+.card .title{font-size:13px;color:var(--muted)}
+.card .value{font-size:20px;font-weight:700;margin-top:8px}
+.small{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* GRID: left column content (overview + chart) and right column (list) */
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+
+/* CHART AREA */
+.chart-card{padding:16px;border-radius:12px;background:linear-gradient(180deg,var(--card), rgba(255,255,255,0.01));border:1px solid var(--glass-2)}
+.chart-header{display:flex;justify-content:space-between;align-items:center}
+
+/* POPULAR ITEMS */
+.list-card{padding:12px;border-radius:12px;background:linear-gradient(180deg,var(--card), rgba(255,255,255,0.01));border:1px solid var(--glass-2);}
+.item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:8px}
+.thumb{width:54px;height:54px;border-radius:10px;background:#111;border:1px solid rgba(255,255,255,0.02);display:grid;place-items:center;font-weight:700}
+.item .meta{flex:1}
+.item .meta h4{margin:0;font-size:15px}
+.item .meta p{margin:0;color:var(--muted);font-size:12px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;text-align:left;border-bottom:1px dashed rgba(255,255,255,0.02);font-size:13px}
+
+/* FOOTER / small screens */
+@media (max-width:980px){.app{grid-template-columns:1fr;}.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+
+/* tiny utility styles */
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:6px 8px;border-radius:999px;background:var(--glass);font-weight:700}
+.spark{font-size:12px;color:var(--muted)}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">FF</div>
+        <div>
+          <h1>FastFood Lovers</h1>
+          <div class="muted" style="font-size:12px">Dashboard • Favorites & Insights</div>
+        </div>
+      </div><nav class="nav">
+    <button class="active">🍔 Overview</button>
+    <button>⭐ Favorites</button>
+    <button>📊 Trends</button>
+    <button>⚙️ Settings</button>
+  </nav>
+
+  <hr style="border:none;border-top:1px solid rgba(255,255,255,0.02);margin:14px 0">
+  <div style="font-size:12px;color:var(--muted);">Shortcuts</div>
+  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+    <span class="pill">New Order</span>
+    <span class="pill">Add Item</span>
+    <span class="pill">Import CSV</span>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;flex:1">
+      <div class="search"><input id="search" placeholder="Search food or ingredient..."/></div>
+      <div class="actions">
+        <button class="btn" id="themeToggle">Toggle Theme</button>
+        <button class="btn">Export</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="text-align:right"><div class="small">Welcome back</div><div style="font-weight:700">Dharani</div></div>
+      <div class="thumb" style="width:44px;height:44px;border-radius:999px">DS</div>
+    </div>
+  </div>
+
+  <section class="cards">
+    <div class="card">
+      <div class="title">Orders Today</div>
+      <div class="value" id="ordersToday">1,234</div>
+      <div class="small">+5.6% vs yesterday</div>
+    </div>
+    <div class="card">
+      <div class="title">Top Cuisine</div>
+      <div class="value">Burgers</div>
+      <div class="small">Most ordered in last 30 days</div>
+    </div>
+    <div class="card">
+      <div class="title">Avg Calories</div>
+      <div class="value">890 kcal</div>
+      <div class="small">Average per order</div>
+    </div>
+    <div class="card">
+      <div class="title">Favorites</div>
+      <div class="value" id="favCount">42</div>
+      <div class="small">Items saved by users</div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div style="font-weight:700">Weekly Orders</div>
+            <div class="spark">Last 7 days</div>
+          </div>
+          <div class="muted">Filter:
+            <select id="viewSelect">
+              <option value="orders">Orders</option>
+              <option value="calories">Calories</option>
+            </select>
+          </div>
+        </div>
+
+        <canvas id="miniChart" width="800" height="280" style="width:100%;height:240px;margin-top:12px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01),transparent)"></canvas>
+
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <div style="flex:1">
+            <div class="muted">Top item</div>
+            <div style="font-weight:700">Cheesy Deluxe Burger</div>
+          </div>
+          <div>
+            <div class="muted">Conversion</div>
+            <div style="font-weight:700">4.2%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div style="font-weight:700">Recent Orders</div>
+        <div style="margin-top:10px">
+          <table>
+            <thead><tr><th>Order</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody id="ordersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <aside class="list-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-weight:700">Popular Items</div>
+        <div class="muted">Top picks this month</div>
+      </div>
+
+      <div id="popularList">
+        <!-- JS inject -->
+      </div>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.02);margin:12px 0">
+      <div style="font-weight:700;margin-bottom:8px">Top Customers</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="item"><div class="thumb">AS</div><div class="meta"><h4>Asha S.</h4><p class="muted">18 orders • 3 favourites</p></div><div>₹3,420</div></div>
+        <div class="item"><div class="thumb">VK</div><div class="meta"><h4>Vikram K.</h4><p class="muted">12 orders • 5 favourites</p></div><div>₹2,110</div></div>
+      </div>
+    </aside>
+  </div>
+
+</main>
+
+  </div>  <script>
+    // Sample data
+    const weekly = {orders:[120,150,180,170,200,210,250], calories:[820,900,880,940,860,1000,980], labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]};
+    const popular = [
+      {name:'Cheesy Deluxe Burger',desc:'Beef patty, double cheese, special sauce',price:199},
+      {name:'Crispy Fries - Large',desc:'Hand-cut fries with salt & herbs',price:99},
+      {name:'Classic Chicken Wrap',desc:'Grilled chicken, lettuce, mayo',price:159},
+      {name:'Chocolate Shake',desc:'Thick milkshake with whipped cream',price:129}
+    ];
+    const recentOrders = [
+      {id:'#1001',items:'Burger x1, Fries x1',total:'₹298',status:'Delivered'},
+      {id:'#1002',items:'Chicken Wrap x2',total:'₹318',status:'Preparing'},
+      {id:'#1003',items:'Shake x1, Fries x1',total:'₹228',status:'Out for delivery'}
+    ];
+
+    // Fill popular list
+    const popularList = document.getElementById('popularList');
+    popular.forEach(p=>{
+      const div = document.createElement('div');div.className='item';
+      div.innerHTML = `<div class=\"thumb\">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div><div class=\"meta\"><h4>${p.name}</h4><p class=\"muted\">${p.desc}</p></div><div style=\"font-weight:700\">₹${p.price}</div>`;
+      popularList.appendChild(div);
+    });
+
+    // Fill recent orders
+    const ordersTable = document.getElementById('ordersTable');
+    recentOrders.forEach(o=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${o.id}</td><td>${o.items}</td><td>${o.total}</td><td>${o.status}</td>`;
+      ordersTable.appendChild(tr);
+    });
+
+    // Mini bar chart (vanilla canvas)
+    const canvas = document.getElementById('miniChart');
+    const ctx = canvas.getContext('2d');
+    function drawChart(type='orders'){
+      const data = (type==='orders')?weekly.orders:weekly.calories;
+      const labels = weekly.labels;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // background subtle grid
+      ctx.fillStyle='rgba(255,255,255,0.02)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      const padding = 40; const w = canvas.width - padding*2; const h = canvas.height - padding*2;
+      const max = Math.max(...data)*1.1;
+      const barWidth = w / data.length * 0.6;
+      data.forEach((v,i)=>{
+        const x = padding + i*(w/data.length) + (w/data.length - barWidth)/2;
+        const barH = (v / max) * h;
+        const y = canvas.height - padding - barH;
+        // gradient fill
+        const g = ctx.createLinearGradient(x,y,x,y+barH);
+        g.addColorStop(0,'rgba(255,107,53,0.95)');
+        g.addColorStop(1,'rgba(255,107,53,0.4)');
+        ctx.fillStyle = g;
+        roundRect(ctx,x,y,barWidth,barH,8,true,false);
+        // label
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font='12px Inter, Arial';
+        ctx.fillText(labels[i], x+barWidth/2 - ctx.measureText(labels[i]).width/2, canvas.height - padding + 18);
+      });
+      // top-left summary
+      ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.font='16px Inter, Arial';
+      ctx.fillText(type==='orders'?`Total: ${data.reduce((a,b)=>a+b,0)}`:`Avg kcal: ${Math.round(data.reduce((a,b)=>a+b,0)/data.length)}`, padding, 24);
+    }
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      if (typeof stroke === 'undefined') { stroke = true; }
+      if (typeof radius === 'undefined') { radius = 5; }
+      if (typeof radius === 'number') { radius = {tl: radius, tr: radius, br: radius, bl: radius}; }
+      ctx.beginPath();
+      ctx.moveTo(x + radius.tl, y);
+      ctx.lineTo(x + width - radius.tr, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+      ctx.lineTo(x + width, y + height - radius.br);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+      ctx.lineTo(x + radius.bl, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+      ctx.lineTo(x, y + radius.tl);
+      ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    // initial draw (scale canvas for high DPI)
+    function scaleCanvas(){
+      const ratio = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth; const h = canvas.clientHeight;
+      canvas.width = Math.floor(w * ratio);
+      canvas.height = Math.floor(h * ratio);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+      drawChart(document.getElementById('viewSelect').value);
+    }
+    window.addEventListener('resize', scaleCanvas);
+    scaleCanvas();
+
+    document.getElementById('viewSelect').addEventListener('change', (e)=>{drawChart(e.target.value);});
+
+    // Theme toggle (light/dark)
+    const toggle = document.getElementById('themeToggle');
+    let dark = true;
+    toggle.addEventListener('click', ()=>{
+      dark = !dark;
+      if(!dark){
+        document.documentElement.style.setProperty('--bg','#f7fafc');
+        document.documentElement.style.setProperty('--card','#ffffff');
+        document.documentElement.style.setProperty('--accent','#ff6b35');
+        document.documentElement.style.setProperty('--muted','#4b5563');
+        document.body.style.color='#0b1220';
+      } else {
+        document.documentElement.style.setProperty('--bg','#0f1724');
+        document.documentElement.style.setProperty('--card','#0b1220');
+        document.documentElement.style.setProperty('--muted','#9aa4b2');
+        document.body.style.color='';
+      }
+    });
+
+    // Simple search filter for popular items
+    document.getElementById('search').addEventListener('input', (e)=>{
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#popularList .item').forEach(el=>{
+        const txt = el.innerText.toLowerCase();
+        el.style.display = txt.includes(q)?'flex':'none';
+      });
+    });
+
+    // sample dynamic updates (simulate analytics)
+    setTimeout(()=>{document.getElementById('ordersToday').innerText = '1,412';document.getElementById('favCount').innerText='45'},1200);
+  </script></body>
+</html>
